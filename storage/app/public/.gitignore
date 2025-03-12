@@ -1,2 +1,5 @@
-*
-!.gitignore
+/recursos
+/fotos
+/backups
+/noticias
+/public

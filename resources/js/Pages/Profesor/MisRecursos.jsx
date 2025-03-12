@@ -4,96 +4,100 @@ import { useState } from 'react';
 import Swal from 'sweetalert2';
 
 export default function RecursosEducativos() {
-    const { recursos = [], grupos = [] } = usePage().props; // Obtenemos los recursos educativos desde las props pasadas por Inertia
-    console.log(recursos);
-    // Estado para el formulario de creación de recurso
-    const [formData, setFormData] = useState({
-        titulo: '',
-        descripcion: '',
-        tipo: '',
-        archivo: null,
-        grupo_id: '', // Asegúrate de agregar este campo
-    });
-
-    const handleInputChange = (e) => {
-        const { name, value, type, files } = e.target;
-        if (type === 'file') {
-            setFormData({
-                ...formData,
-                [name]: files[0],
-            });
-        } else {
-            setFormData({
-                ...formData,
-                [name]: value,
-            });
-        }
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
-        const form = new FormData();
-        form.append('titulo', formData.titulo);
-        form.append('descripcion', formData.descripcion);
-        form.append('tipo', formData.tipo);
-        form.append('archivo', formData.archivo);
-        form.append('grupo_id', formData.grupo_id);
-
-        router.post('/recursos/crear', form, {
-            onSuccess: () => {
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Recurso creado!',
-                    text: 'El recurso ha sido creado correctamente.',
-                    confirmButtonColor: '#1E88E5',
-                });
-                setFormData({ titulo: '', descripcion: '', tipo: '', archivo: null, grupo_id: '' }); // Limpiar formulario
-            },
-            onError: () => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Ocurrió un problema al crear el recurso.',
-                    confirmButtonColor: '#d33',
-                });
-            },
+    const { recursos = [], grupos = [] } = usePage().props;
+    
+        const [formData, setFormData] = useState({
+            titulo: '',
+            descripcion: '',
+            tipo: '',
+            archivo: null,
+            url: '', // Nuevo campo para la URL
+            grupo_id: '',
         });
-    };
-
-    const handleDelete = (recursoId) => {
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: `¿Deseas eliminar el recurso con ID: ${recursoId}?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                router.delete(`/recursos/${recursoId}`, {
-                    onSuccess: () => {
-                        Swal.fire({
-                            icon: 'success',
-                            title: '¡Eliminado!',
-                            text: 'El recurso ha sido eliminado correctamente.',
-                            confirmButtonColor: '#1E88E5',
-                        });
-                    },
-                    onError: () => {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Ocurrió un problema al eliminar el recurso.',
-                            confirmButtonColor: '#d33',
-                        });
-                    },
+    
+        const handleInputChange = (e) => {
+            const { name, value, type, files } = e.target;
+            if (type === 'file') {
+                setFormData({
+                    ...formData,
+                    [name]: files[0],
+                });
+            } else {
+                setFormData({
+                    ...formData,
+                    [name]: value,
                 });
             }
-        });
-    };
+        };
+    
+        const handleSubmit = (e) => {
+            e.preventDefault();
+    
+            const form = new FormData();
+            form.append('titulo', formData.titulo);
+            form.append('descripcion', formData.descripcion);
+            form.append('tipo', formData.tipo);
+            if (formData.tipo === 'Enlace Web') {
+                form.append('url', formData.url); // Agregar la URL al formulario
+            } else {
+                form.append('archivo', formData.archivo);
+            }
+            form.append('grupo_id', formData.grupo_id)
+    
+            router.post('/recursos/crear', form, {
+                onSuccess: () => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Recurso creado!',
+                        text: 'El recurso ha sido creado correctamente.',
+                        confirmButtonColor: '#1E88E5',
+                    });
+                    setFormData({ titulo: '', descripcion: '', tipo: '', archivo: null, url: '', grupo_id: '' }); // Limpiar formulario
+                },
+                onError: () => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Ocurrió un problema al crear el recurso.',
+                        confirmButtonColor: '#d33',
+                    });
+                },
+            });
+        };
+    
+        const handleDelete = (recursoId) => {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: `¿Deseas eliminar el recurso con ID: ${recursoId}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    router.delete(`/recursos/${recursoId}`, {
+                        onSuccess: () => {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Eliminado!',
+                                text: 'El recurso ha sido eliminado correctamente.',
+                                confirmButtonColor: '#1E88E5',
+                            });
+                        },
+                        onError: () => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Ocurrió un problema al eliminar el recurso.',
+                                confirmButtonColor: '#d33',
+                            });
+                        },
+                    });
+                }
+            });
+        };
 
     return (
         <AuthenticatedLayout
@@ -151,8 +155,10 @@ export default function RecursosEducativos() {
                                 <option value="PDF">PDF</option>
                                 <option value="DOCX">DOCX</option>
                                 <option value="PPTX">PPTX</option>
+                                <option value="Enlace Web">Enlace Web</option>
                             </select>
                         </div>
+                        
                         <div>
                             <label htmlFor="grupo_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Selecciona el Grupo
@@ -176,18 +182,34 @@ export default function RecursosEducativos() {
                                 )}
                             </select>
                         </div>
-                        <div>
-                            <label htmlFor="archivo" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Archivo
-                            </label>
-                            <input
-                                type="file"
-                                id="archivo"
-                                name="archivo"
-                                onChange={handleInputChange}
-                                className="mt-2 block w-full p-4 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
-                            />
-                        </div>
+                        {formData.tipo === 'Enlace Web' ? (
+                            <div>
+                                <label htmlFor="url" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    URL del Recurso
+                                </label>
+                                <input
+                                    type="url"
+                                    id="url"
+                                    name="url"
+                                    value={formData.url}
+                                    onChange={handleInputChange}
+                                    className="mt-2 block w-full p-4 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+                                />
+                            </div>
+                        ) : (
+                            <div>
+                                <label htmlFor="archivo" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Archivo
+                                </label>
+                                <input
+                                    type="file"
+                                    id="archivo"
+                                    name="archivo"
+                                    onChange={handleInputChange}
+                                    className="mt-2 block w-full p-4 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
+                                />
+                            </div>
+                        )}
                         <button
                             type="submit"
                             className="w-full bg-teal-600 text-white py-3 px-6 rounded-xl hover:bg-teal-700 transition duration-300 transform hover:scale-105"

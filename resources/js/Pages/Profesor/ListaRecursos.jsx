@@ -104,6 +104,15 @@ const ListaRecursos = ({ grupos, auth }) => {
 
                                                     <p className="text-gray-600 mb-4">{recurso.descripcion}</p>
 
+                                                    {/* Mostrar la URL si el tipo es "enlace web" */}
+                                                    {recurso.tipo === "Enlace Web" && (
+                                                        <div className="mb-4">
+                                                            <a href={recurso.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                                                                {recurso.url} 
+                                                            </a>
+                                                        </div>
+                                                    )}
+
                                                     {/* Vista previa del archivo con react-file-viewer */}
                                                     {recurso.archivo_path && (
                                                         <div className="h-96 overflow-auto border rounded-lg shadow-md">
