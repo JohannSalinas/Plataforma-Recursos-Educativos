@@ -21,19 +21,22 @@ class BackupController extends Controller
     public function backup()
     {
         try {
-            if (!Storage::exists('public/backups')) {
-                Storage::makeDirectory('public/backups');
+            if (!Storage::exists('/backups')) {
+                Storage::makeDirectory('/backups');
             }
 
             $fileName = 'backup_' . now()->format('Ymd_His') . '.sql';
             $backupPath = storage_path("app/public/backups/{$fileName}");
-
+            
             // Configuración de la base de datos
             $dbHost = config('database.connections.mysql.host', '127.0.0.1');
             $dbUser = config('database.connections.mysql.username');
             $dbPass = config('database.connections.mysql.password');
             $dbName = config('database.connections.mysql.database');
 
+            $mysqlDumpPath = config('database.connections.mysql.mysql_dump_path');
+            
+            
             // Construcción del comando
             $command = sprintf(
                 '"%s" --host=%s --user=%s --password=%s %s > "%s"',
@@ -44,16 +47,17 @@ class BackupController extends Controller
                 escapeshellarg($dbName),
                 $backupPath
             );
-
+            
             exec($command, $output, $resultCode);
+            
 
             // Verificar si el backup se creó correctamente
             if ($resultCode !== 0 || !file_exists($backupPath) || filesize($backupPath) === 0) {
-                Log::error('Error en backup: Código ' . $resultCode . ', Output: ' . implode("\n", $output));
+                
                 throw new \Exception('El archivo de respaldo está vacío o no se pudo crear.');
             }
 
-            Log::info('Backup creado: ' . $backupPath . ' - Tamaño: ' . filesize($backupPath) . ' bytes');
+            
 
             // Devolver información sobre el archivo creado
             return response()->json([
